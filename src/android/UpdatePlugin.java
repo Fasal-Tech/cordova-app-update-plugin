@@ -45,20 +45,6 @@ public class UpdatePlugin extends CordovaPlugin {
   try {
    appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
     System.out.println(appUpdateInfo);
-    if (appUpdateInfo.updateAvailability() ==
-     UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-     // If an in-app update is already running, resume the update.
-     try {
-      appUpdateManager.startUpdateFlowForResult(
-       appUpdateInfo,
-       AppUpdateType.IMMEDIATE,
-       cordova.getActivity(),
-       REQUEST_CODE);
-     } catch (Exception e) {
-      e.printStackTrace();
-     }
-    }
-
     if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
      appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
      try {
