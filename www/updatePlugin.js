@@ -5,8 +5,9 @@ function UpdatePlugin() {}
 
 // The function that passes work along to native shells
 // Message is a string, duration may be 'long' or 'short'
-UpdatePlugin.prototype.show = function(successCallback, errorCallback, upateType) {
-  exec(successCallback, errorCallback, 'UpdatePlugin', 'show', [{ 'updateType': upateType }]);
+UpdatePlugin.prototype.show = function(successCallback, errorCallback, updateType) {
+  console.log(updateType);
+  exec(successCallback, errorCallback, 'UpdatePlugin', 'show', [{ 'updateType': updateType }]);
 }
 
 // Installation constructor that binds updatePlugin to window

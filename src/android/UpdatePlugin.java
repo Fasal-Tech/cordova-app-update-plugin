@@ -75,6 +75,7 @@ public class UpdatePlugin extends CordovaPlugin {
  public boolean execute(String action, JSONArray args,
   final CallbackContext callbackContext) {
   // Verify that the user sent a "show" action
+  System.out.println("came in exec");
   if (!action.equals("show")) {
    callbackContext.error("\"" + action + "\" is not a recognized action.");
    return false;
