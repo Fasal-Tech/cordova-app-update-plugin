@@ -1,6 +1,6 @@
 package com.mrspark.cordova.plugin;
 
-
+import com.google.android.play.core.appupdate.testing.FakeAppUpdateManager;
 import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.google.android.play.core.tasks.Task;
 import com.google.android.play.core.install.model.UpdateAvailability;
@@ -91,7 +91,20 @@ public class UpdatePlugin extends CordovaPlugin {
    e.printStackTrace();
   }
   Context context = this.cordova.getActivity().getApplicationContext();
+  fakeAppUpdateManager =  FakeAppUpdateManager(context);
+  fakeAppUpdateManager.partiallyAllowedUpdateType = AppUpdateType.FLEXIBLE;
+  fakeAppUpdateManager.setUpdateAvailable(2);
 
+  System.out.println(fakeAppUpdateManager.isConfirmationDialogVisible);
+
+  fakeAppUpdateManager.userAcceptsUpdate();
+
+  fakeAppUpdateManager.downloadStarts();
+
+  fakeAppUpdateManager.downloadCompletes();
+  
+  fakeAppUpdateManager.installCompletes();
+  System.out.println(fakeAppUpdateManager.isInstallSplashScreenVisible);
   appUpdateManager = AppUpdateManagerFactory.create(context);
 
   Task < AppUpdateInfo > appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
