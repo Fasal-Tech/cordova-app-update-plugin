@@ -24,6 +24,11 @@
                 <param name="android-package" value="com.mrspark.cordova.plugin.UpdatePlugin"/>
             </feature>
         </config-file>
+        <framework src="com.android.support:appcompat-v7:+" />
+        <framework src="com.android.support:design:+" />
+         <edit-config file="AndroidManifest.xml" target="/manifest/application/activity[@android:name='MainActivity']" mode="merge">
+            <activity android:name="MainActivity" android:theme="@style/Theme.AppCompat.NoActionBar" />
+        </edit-config>
         <framework src="src/android/build-extra.gradle" custom="true" type="gradleReference" />
         <source-file src="src/android/UpdatePlugin.java" target-dir="src/com/mrspark/cordova/plugin" />
     </platform>
