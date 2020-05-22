@@ -29,132 +29,127 @@ import org.json.JSONException;
 import static java.lang.System.out;
 
 public class UpdatePlugin extends CordovaPlugin {
- public int REQUEST_CODE = 7;
- private static boolean IN_APP_UPDATE = false;
- private static String IN_APP_UPDATE_TYPE = "FLEXIBLE";
- private static AppUpdateManager appUpdateManager;
- private static InstallStateUpdatedListener listener;
- private FrameLayout layout;
+    public int REQUEST_CODE = 7;
+    private static String IN_APP_UPDATE_TYPE = "FLEXIBLE";
+    private static Integer DAYS_FOR_FLEXIBLE_UPDATE = 0;
+    private static Integer DAYS_FOR_IMMEDIATE_UPDATE = 0;
+    private static Integer HIGH_PRIORITY_UPDATE = 3;
+    private static Integer MEDIUM_PRIORITY_UPDATE = 1;
+    private static AppUpdateManager appUpdateManager;
+    private static InstallStateUpdatedListener listener;
+    private FrameLayout layout;
 
 
- @Override
- public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-  super.initialize(cordova, webView);
-  layout = (FrameLayout) webView.getView().getParent();
- }
-
- public void onStateUpdate(InstallState state) {
-  if (state.installStatus() == InstallStatus.DOWNLOADED) {
-   // After the update is downloaded, show a notification
-   // and request user confirmation to restart the app.
-   popupSnackbarForCompleteUpdate();
-  }
- };
- /* Displays the snackbar notification and call to action. */
- private void popupSnackbarForCompleteUpdate() {
-  Snackbar snackbar =
-          Snackbar.make(
-                  layout,
-                  "An update has just been downloaded.",
-                  Snackbar.LENGTH_INDEFINITE);
-  snackbar.setAction("RESTART", view -> appUpdateManager.completeUpdate());
-  snackbar.show();
- }
-
- @Override
- public boolean execute(String action, JSONArray args,
-                        final CallbackContext callbackContext) {
-  // Verify that the user sent a "show" action
-  if (!action.equals("show")) {
-   callbackContext.error("\"" + action + "\" is not a recognized action.");
-   return false;
-  }
-  IN_APP_UPDATE = true;
-  try {
-   JSONObject argument = args.getJSONObject(0);
-   IN_APP_UPDATE_TYPE = argument.getString("updateType");
-  } catch (JSONException e) {
-   e.printStackTrace();
-  }
-  Context context = this.cordova.getContext();
-  appUpdateManager = AppUpdateManagerFactory.create(context);
-
-  Task < AppUpdateInfo > appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
-
-  try {
-   appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
-   if (IN_APP_UPDATE && IN_APP_UPDATE_TYPE.equals("IMMEDIATE") && appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
-           appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
-    try {
-     appUpdateManager.startUpdateFlowForResult(
-             appUpdateInfo,
-             AppUpdateType.IMMEDIATE,
-             cordova.getActivity(),
-             REQUEST_CODE
-     );
-    } catch (Exception e) {
-     e.printStackTrace();
+    @Override
+    public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
+            super.initialize(cordova, webView);
+            layout = (FrameLayout) webView.getView().getParent();
     }
-   } else if (IN_APP_UPDATE && IN_APP_UPDATE_TYPE.equals("FLEXIBLE") && appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
-           appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
-    listener = state -> {
-     onStateUpdate(state);
-    };
-    appUpdateManager.registerListener(listener);
-    try {
-     appUpdateManager.startUpdateFlowForResult(
-             appUpdateInfo,
-             AppUpdateType.FLEXIBLE,
-             cordova.getActivity(),
-             REQUEST_CODE
-     );
-    } catch (Exception e) {
-     e.printStackTrace();
-    }
-   }
 
-   PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, appUpdateInfo.toString());
-   callbackContext.sendPluginResult(pluginResult);
-            });
-  } catch (Exception e) {
-   e.printStackTrace();
-  }
-  return true;
- }
-
- @Override
- public void onResume(boolean multitasking) {
-  super.onResume(multitasking);
-  appUpdateManager
-          .getAppUpdateInfo()
-          .addOnSuccessListener(
-                  appUpdateInfo -> {
-
-                   if (IN_APP_UPDATE_TYPE.equals("FLEXIBLE") && appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+    public void onStateUpdate(final InstallState state) {
+            if (state.installStatus() == InstallStatus.DOWNLOADED) {
+                    // After the update is downloaded, show a notification
+                    // and request user confirmation to restart the app.
                     popupSnackbarForCompleteUpdate();
-                   }
+            }
+    };
 
-                   if (appUpdateInfo.updateAvailability() ==
-                           UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-                    // If an in-app update is already running, resume the update.
-                    try {
-                     if (IN_APP_UPDATE_TYPE.equals("FLEXIBLE")) {
-                      appUpdateManager.startUpdateFlowForResult(
-                              appUpdateInfo,
-                              AppUpdateType.FLEXIBLE,
-                              cordova.getActivity(),
-                              REQUEST_CODE);
-                     } else {
-                      appUpdateManager.startUpdateFlowForResult(
-                              appUpdateInfo,
-                              AppUpdateType.IMMEDIATE,
-                              cordova.getActivity(),
-                              REQUEST_CODE);
-                     }
-                    } catch (Exception e) {
-                     e.printStackTrace();
+    public void checkForUpdate(final int updateType, final AppUpdateInfo appUpdateInfo) {
+            if (updateType == 0) {
+                    IN_APP_UPDATE_TYPE = "FLEXIBLE";
+                    listener = state -> {
+                            onStateUpdate(state);
+                    };
+                    appUpdateManager.registerListener(listener);
+            }else{
+                IN_APP_UPDATE_TYPE = "IMMEDIATE";
+            }
+            try {
+                    appUpdateManager.startUpdateFlowForResult(appUpdateInfo, updateType, cordova.getActivity(),
+                                    REQUEST_CODE);
+            } catch (final Exception e) {
+                    e.printStackTrace();
+            }
+    }
+
+    /* Displays the snackbar notification and call to action. */
+    private void popupSnackbarForCompleteUpdate() {
+            final Snackbar snackbar = Snackbar.make(layout, "An update has just been downloaded.",
+                            Snackbar.LENGTH_INDEFINITE);
+            snackbar.setAction("RESTART", view -> appUpdateManager.completeUpdate());
+            snackbar.show();
+    }
+
+    @Override
+    public boolean execute(final String action, final JSONArray args, final CallbackContext callbackContext) {
+            // Verify that the user sent a "show" action
+            if (!action.equals("update")) {
+                    callbackContext.error("\"" + action + "\" is not a recognized action.");
+                    return false;
+            }
+            try {
+                    final JSONObject argument = args.getJSONObject(0);
+                    DAYS_FOR_FLEXIBLE_UPDATE = Integer.parseInt(argument.getString("flexibleUpdateStalenessDays"));
+                    DAYS_FOR_IMMEDIATE_UPDATE = Integer.parseInt(argument.getString("immediateUpdateStalenessDays"));
+            } catch (final JSONException e) {
+                    e.printStackTrace();
+            }
+            final Context context = this.cordova.getContext();
+            appUpdateManager = AppUpdateManagerFactory.create(context);
+            final Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
+
+            try {
+                    appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
+                            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                                            && appUpdateInfo.updatePriority() >= HIGH_PRIORITY_UPDATE
+                                            && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                                    checkForUpdate(AppUpdateType.IMMEDIATE, appUpdateInfo);
+                            } else if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                                            && appUpdateInfo.updatePriority() >= MEDIUM_PRIORITY_UPDATE
+                                            && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                                    checkForUpdate(AppUpdateType.FLEXIBLE, appUpdateInfo);
+                            } else if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                                            && appUpdateInfo.clientVersionStalenessDays() != null
+                                            && appUpdateInfo.clientVersionStalenessDays() >= DAYS_FOR_IMMEDIATE_UPDATE
+                                            && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                                    checkForUpdate(AppUpdateType.IMMEDIATE, appUpdateInfo);
+                            } else if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                                            && appUpdateInfo.clientVersionStalenessDays() != null
+                                            && appUpdateInfo.clientVersionStalenessDays() >= DAYS_FOR_FLEXIBLE_UPDATE
+                                            && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                                    checkForUpdate(AppUpdateType.FLEXIBLE, appUpdateInfo);
+                            }
+
+                            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK,
+                                            appUpdateInfo.toString());
+                            callbackContext.sendPluginResult(pluginResult);
+                    });
+            } catch (final Exception e) {
+                    e.printStackTrace();
+            }
+            return true;
+    }
+
+    @Override
+    public void onResume(final boolean multitasking) {
+        super.onResume(multitasking);
+        appUpdateManager
+            .getAppUpdateInfo()
+            .addOnSuccessListener(
+                appUpdateInfo -> {
+                    if (IN_APP_UPDATE_TYPE.equals("FLEXIBLE") && appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                        popupSnackbarForCompleteUpdate();
                     }
-                   }
-                  });
- }
+
+                    if (appUpdateInfo.updateAvailability() ==
+                        UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                        // If an in-app update is already running, resume the update.
+                        try {
+                            checkForUpdate(AppUpdateType.IMMEDIATE, appUpdateInfo);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+    }
 }
