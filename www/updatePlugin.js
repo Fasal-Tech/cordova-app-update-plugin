@@ -5,8 +5,8 @@ function UpdatePlugin() {}
 
 // The function that passes work along to native shells
 // Message is a string, duration may be 'long' or 'short'
-UpdatePlugin.prototype.update = function(successCallback, errorCallback, updateType) {
-  exec(successCallback, errorCallback, 'UpdatePlugin', 'update', [{ 'flexibleUpdateStalenessDays': 1, 'immediateUpdateStalenessDays': 5 }]);
+UpdatePlugin.prototype.update = function(successCallback, errorCallback, config) {
+  exec(successCallback, errorCallback, 'UpdatePlugin', 'update', [{ 'flexibleUpdateStalenessDays': config.flexibleUpdateStalenessDays, 'immediateUpdateStalenessDays': config.immediateUpdateStalenessDays }]);
 }
 
 // Installation constructor that binds updatePlugin to window
