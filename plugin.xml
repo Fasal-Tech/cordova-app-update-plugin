@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
-        id="cordova-app-update-plugin" version="0.0.1">
+        id="cordova-in-app-update" version="0.0.1">
     <name>UpdatePlugin</name>
 
     <description>An Android Cordova plugin that allows users to update app to letest version without leaving the application.</description>
     <license>MIT</license>
 
-    <keywords>cordova,android,playstore,update,autoupdate</keywords>
+    <keywords>cordova,android,playstore,update,autoupdate,In app update,Stalness days,Priority update,Flexible update,Immidiate update</keywords>
     <repo>https://github.com/MrSpark2591/cordova-app-update-plugin.git</repo>
     <issue>https://github.com/MrSpark2591/cordova-app-update-plugin/issues</issue>
   
