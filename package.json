@@ -17,11 +17,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "cordova", "android", "playstore", "update", "autoupdate"
+    "cordova", "android", "playstore", "update", "autoupdate", "In app update", "stalness days", "priority update", "Flexible update", "Immidiate update"
   ],
   "engines": [{
     "name": "cordova",
-    "version": ">=3.0.0"
+    "version": ">=6.0.0"
   }],
   "author": "Dhaval Chaudhary <mr.spark2591@gmail.com>",
   "license": "MIT",
