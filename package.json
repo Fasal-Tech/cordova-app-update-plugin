@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MrSpark2591/cordova-app-update-plugin.git"
+    "url": "git+https://github.com/Fasal-Tech/cordova-app-update-plugin.git"
   },
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,7 @@
   "author": "Dhaval Chaudhary <mr.spark2591@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MrSpark2591/cordova-app-update-plugin/issues"
+    "url": "https://github.com/Fasal-Tech/cordova-app-update-plugin/issues"
   },
-  "homepage": "https://github.com/MrSpark2591/cordova-app-update-plugin/"
+  "homepage": "https://github.com/Fasal-Tech/cordova-app-update-plugin/"
 }
