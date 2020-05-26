@@ -1,4 +1,4 @@
-# cordova-app-update-plugin
+# cordova-in-app-update
 This pluging enabels [In app update](https://developer.android.com/guide/playcore/in-app-updates) For cordova.
 
 ## Supports
