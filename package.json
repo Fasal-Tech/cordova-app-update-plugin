@@ -17,7 +17,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "cordova", "android", "playstore", "update", "autoupdate", "In app update", "Stalness days", "Priority update", "Flexible update", "Immidiate update"
+    "ecosystem:cordova", "cordova-android", "cordova", "android", "playstore", "update", "autoupdate", "In app update", "Stalness days", "Priority update", "Flexible update", "Immidiate update"
   ],
   "engines": [{
     "name": "cordova",
