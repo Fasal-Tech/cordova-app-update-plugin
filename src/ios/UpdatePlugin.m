@@ -8,30 +8,19 @@
 @property NSString *alertMessage;
 @property NSString *alertUpdateButtonTitle;
 @property NSString *alertCancelButtonTitle;
+@property NSString *version;
+@property NSString *appName;
 
 @end
 
 
 @implementation Updater
 
-- (id)init
-{
-    if (self) {
-        self.alertTitle = @"New Version";
-        self.alertMessage = @"Version %@ is available on the AppStore.";
-        self.alertUpdateButtonTitle = @"Update";
-        self.alertCancelButtonTitle = @"Not Now";
-    }
-    return self;
-}
-
 - (BOOL)hasConnection
 {
     const char *host = "itunes.apple.com";
     BOOL reachable;
     BOOL success;
-   
-    // Link SystemConfiguration.framework! <SystemConfiguration/SystemConfiguration.h>
     SCNetworkReachabilityRef reachability = SCNetworkReachabilityCreateWithName(NULL, host);
     SCNetworkReachabilityFlags flags;
     success = SCNetworkReachabilityGetFlags(reachability, &flags);
@@ -61,7 +50,7 @@ NSString *appStoreURL = nil;
 }
 
 
-- (void)checkNewAppVersion:(void(^)(BOOL newVersion, NSString *version,NSInteger days))completion
+- (void)checkNewAppVersion:(void(^)(BOOL newVersion, NSInteger days))completion
 {
     NSDictionary *bundleInfo = [[NSBundle mainBundle] infoDictionary];
     NSString *bundleIdentifier = bundleInfo[@"CFBundleIdentifier"];
@@ -76,7 +65,7 @@ NSString *appStoreURL = nil;
        
         NSData *lookupResults = [NSData dataWithContentsOfURL:lookupURL];
         if (!lookupResults) {
-            completion(NO, nil, 0);
+            completion(NO, 0);
             return;
         }
        
@@ -85,29 +74,34 @@ NSString *appStoreURL = nil;
         dispatch_async(dispatch_get_main_queue(), ^(void) {
             NSUInteger resultCount = [jsonResults[@"resultCount"] integerValue];
             if (resultCount){
+                
                 NSDictionary *appDetails = [jsonResults[@"results"] firstObject];
                 NSString *appItunesUrl = [appDetails[@"trackViewUrl"] stringByReplacingOccurrencesOfString:@"&uo=4" withString:@""];
                 NSString *latestVersion = appDetails[@"version"];
                 NSString *currentVersionReleaseDate = appDetails [@"currentVersionReleaseDate"];
-                NSDateFormatter * dateFormatter = [NSDateFormatter new];
+                NSDateFormatter *dateFormatter = [NSDateFormatter new];
                 [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
                 NSDate *releaseDate = [dateFormatter dateFromString:currentVersionReleaseDate];
+                
+                self.appName = appDetails[@"trackName"];
+                self.version = appDetails[@"version"];
                 
                 if ([latestVersion compare:currentVersion options:NSNumericSearch] == NSOrderedDescending) {
                     appStoreURL = appItunesUrl;
                     NSInteger daysDiff = [Updater daysBetweenDate:releaseDate endDate:[NSDate date]];
-                    completion(YES, latestVersion, daysDiff);
+                    completion(YES, daysDiff);
                 } else {
-                    completion(NO, nil, 0);
+                    completion(NO, 0);
                 }
+                
             } else {
-                completion(NO, nil, 0);
+                completion(NO, 0);
             }
         });
     });
 }
 
-- (void)alertUpdateForVersion:(NSString *)version withForce:(BOOL)force
+- (void)alertUpdateWithForce:(BOOL)force
 {
     UIWindow *foundWindow = nil;
     NSArray *windows = [[UIApplication sharedApplication] windows];
@@ -120,9 +114,9 @@ NSString *appStoreURL = nil;
     }
     if (foundWindow)
     {
-        NSString *alertMessage = [NSString stringWithFormat:self.alertMessage, version];
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:self.alertTitle message:alertMessage preferredStyle:UIAlertControllerStyleAlert];
-
+        self.alertMessage =  [self.alertMessage stringByReplacingOccurrencesOfString:@"__version__" withString:self.version];
+        self.alertMessage =  [self.alertMessage stringByReplacingOccurrencesOfString:@"__appName__" withString:self.appName];
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:self.alertTitle message:self.alertMessage preferredStyle:UIAlertControllerStyleAlert];
         UIAlertAction *updateAction = [UIAlertAction actionWithTitle:self.alertUpdateButtonTitle style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:appStoreURL] options:@{} completionHandler:nil];
             if(force){
@@ -150,18 +144,39 @@ NSString *appStoreURL = nil;
 {
     CDVPluginResult* pluginResult = nil;
     NSDictionary *args = [command.arguments objectAtIndex:0];
-    NSInteger flexibleUpdateStalenessDays = [args[@"flexibleUpdateStalenessDays"] integerValue];
-    NSInteger immediateUpdateStalenessDays = [args[@"immediateUpdateStalenessDays"] integerValue];
+    NSDictionary *iosArgs = args[@"IOS"];
     Updater *updater = [Updater new];
+    updater.alertTitle = iosArgs[@"alertTitle"];
+    updater.alertMessage = iosArgs[@"alertMessage"];
+    updater.alertUpdateButtonTitle = iosArgs[@"alertUpdateButtonTitle"];
+    updater.alertCancelButtonTitle = iosArgs[@"alertCancelButtonTitle"];
+    
     BOOL hasConnection = [updater hasConnection];
     if (hasConnection) {
-        [updater checkNewAppVersion:^(BOOL newVersion, NSString *version, NSInteger days) {
+        [updater checkNewAppVersion:^(BOOL newVersion, NSInteger days) {
             if(newVersion){
-                if(days >= immediateUpdateStalenessDays){
-                    [updater alertUpdateForVersion:version withForce:YES];
+                NSString *type = iosArgs[@"type"];
+                if([type isEqual:@"MIXED"]){
+                    NSInteger flexibleUpdateStalenessDays = [iosArgs[@"flexibleUpdateStalenessDays"] integerValue];
+                    NSInteger immediateUpdateStalenessDays = [iosArgs[@"immediateUpdateStalenessDays"] integerValue];
+                    if(days >= immediateUpdateStalenessDays){
+                        [updater alertUpdateWithForce:YES];
+                    }
+                    else if(days >= flexibleUpdateStalenessDays){
+                        [updater alertUpdateWithForce:NO];
+                    }
                 }
-                else if(days >= flexibleUpdateStalenessDays){
-                    [updater alertUpdateForVersion:version withForce:NO];
+                else if([type isEqual:@"FLEXIBLE"]){
+                    NSInteger stallDays = [iosArgs[@"stallDays"] integerValue];
+                    if(days >= stallDays){
+                        [updater alertUpdateWithForce:NO];
+                    }
+                }
+                else if([type isEqual:@"IMMEDIATE"]){
+                    NSInteger stallDays = [iosArgs[@"stallDays"] integerValue];
+                    if(days >= stallDays){
+                        [updater alertUpdateWithForce:YES];
+                    }
                 }
             }
         }];
