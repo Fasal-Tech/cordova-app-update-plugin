@@ -1,11 +1,12 @@
 {
   "name": "cordova-in-app-update",
-  "version": "1.0.3",
+  "version": "2.0.1",
   "description": "An Android Cordova plugin that allows users to update app to letest version without leaving the application",
   "cordova": {
     "id": "cordova-in-app-update",
     "platforms": [
-      "android"
+      "android",
+      "ios"
     ]
   },
   "repository": {
@@ -17,12 +18,25 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "ecosystem:cordova", "cordova-android", "cordova", "android", "playstore", "update", "autoupdate", "In app update", "Stalness days", "Priority update", "Flexible update", "Immidiate update"
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova",
+    "android",
+    "playstore",
+    "update",
+    "autoupdate",
+    "In app update",
+    "Stalness days",
+    "Priority update",
+    "Flexible update",
+    "Immediate update"
   ],
-  "engines": [{
-    "name": "cordova",
-    "version": ">=6.0.0"
-  }],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=6.0.0"
+    }
+  ],
   "author": "Dhaval Chaudhary <mr.spark2591@gmail.com>",
   "license": "MIT",
   "bugs": {

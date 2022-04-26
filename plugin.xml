@@ -32,4 +32,13 @@
         <framework src="src/android/build-extra.gradle" custom="true" type="gradleReference" />
         <source-file src="src/android/UpdatePlugin.java" target-dir="src/com/mrspark/cordova/plugin" />
     </platform>
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="UpdatePlugin">
+                <param name="ios-package" value="CDVUpdatePlugin"/>
+            </feature>
+        </config-file>
+        <header-file src="src/ios/UpdatePlugin.h" />
+        <source-file src="src/ios/UpdatePlugin.m" />
+    </platform>
 </plugin>
