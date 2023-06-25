@@ -136,7 +136,7 @@ public class UpdatePlugin extends CordovaPlugin {
                 }
 
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK,
-                        appUpdateInfo.toString());
+                        appUpdateInfo.availableVersionCode());
                 callbackContext.sendPluginResult(pluginResult);
             });
         } catch (final Exception e) {
