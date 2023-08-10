@@ -60,6 +60,13 @@ UpdatePlugin.prototype.update = function (
   exec(successCallback, errorCallback, "UpdatePlugin", "update", [config]);
 };
 
+UpdatePlugin.prototype.getAvailableVersion = function (
+  successCallback,
+  errorCallback
+) {
+  exec(successCallback, errorCallback, "UpdatePlugin", "getAvailableVersion", []);
+};
+
 // Installation constructor that binds updatePlugin to window
 UpdatePlugin.install = function () {
   if (!window.plugins) {
