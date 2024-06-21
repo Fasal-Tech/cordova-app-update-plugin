@@ -1,6 +1,6 @@
 {
   "name": "cordova-in-app-update",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "An Android Cordova plugin that allows users to update app to letest version without leaving the application",
   "cordova": {
     "id": "cordova-in-app-update",

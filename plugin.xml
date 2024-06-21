@@ -12,7 +12,7 @@
     <issue>https://github.com/MrSpark2591/cordova-app-update-plugin/issues</issue>
   
     <engines>
-        <engine name="cordova" version=">=3.0.0"/>
+        <engine name="cordova" version=">=6.0.0"/>
     </engines>
   
     <js-module src="www/updatePlugin.js" name="UpdatePlugin">
