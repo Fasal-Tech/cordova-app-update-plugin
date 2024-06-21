@@ -1,7 +1,7 @@
 package com.mrspark.cordova.plugin;
 
 import com.google.android.play.core.appupdate.AppUpdateManager;
-import com.google.android.play.core.tasks.Task;
+import com.google.android.gms.tasks.Task;
 import com.google.android.play.core.install.model.UpdateAvailability;
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
 import com.google.android.play.core.install.model.AppUpdateType;
@@ -92,8 +92,10 @@ public class UpdatePlugin extends CordovaPlugin {
 
     @Override
     public boolean execute(final String action, final JSONArray args, final CallbackContext callbackContext) {
+		
+		
         // Verify that the user sent a "show" action
-        if (!action.equals("update")) {
+        if (!action.equals("update") && !action.equals("getAvailableVersion")) {
             callbackContext.error("\"" + action + "\" is not a recognized action.");
             return false;
         }
@@ -103,6 +105,14 @@ public class UpdatePlugin extends CordovaPlugin {
         final Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
         final JSONObject androidArgs = getAndroidArgs(args);
         try {
+			
+			if (action.equals("getAvailableVersion")) {
+				appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
+					PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, appUpdateInfo.availableVersionCode());
+					callbackContext.sendPluginResult(pluginResult);
+				});	
+				return true;
+			}
             final String type = androidArgs.getString("type");
             if (type.equals("MIXED")) {
                 DAYS_FOR_FLEXIBLE_UPDATE = Integer.parseInt(androidArgs.getString("flexibleUpdateStalenessDays"));
@@ -115,6 +125,7 @@ public class UpdatePlugin extends CordovaPlugin {
                 DAYS_FOR_IMMEDIATE_UPDATE = Integer.parseInt(androidArgs.getString("stallDays"));
             }
             appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
+				int clientVersionStalenessDays = appUpdateInfo.clientVersionStalenessDays() != null ? appUpdateInfo.clientVersionStalenessDays() : 0;
                 if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
                         && appUpdateInfo.updatePriority() >= HIGH_PRIORITY_UPDATE
                         && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
@@ -124,19 +135,17 @@ public class UpdatePlugin extends CordovaPlugin {
                         && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
                     checkForUpdate(AppUpdateType.FLEXIBLE, appUpdateInfo);
                 } else if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
-                        && appUpdateInfo.clientVersionStalenessDays() != null
-                        && appUpdateInfo.clientVersionStalenessDays() >= DAYS_FOR_IMMEDIATE_UPDATE
+                        && clientVersionStalenessDays >= DAYS_FOR_IMMEDIATE_UPDATE
                         && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
                     checkForUpdate(AppUpdateType.IMMEDIATE, appUpdateInfo);
                 } else if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
-                        && appUpdateInfo.clientVersionStalenessDays() != null
-                        && appUpdateInfo.clientVersionStalenessDays() >= DAYS_FOR_FLEXIBLE_UPDATE
+                        && clientVersionStalenessDays >= DAYS_FOR_FLEXIBLE_UPDATE
                         && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
                     checkForUpdate(AppUpdateType.FLEXIBLE, appUpdateInfo);
                 }
 
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK,
-                        appUpdateInfo.toString());
+                        appUpdateInfo.availableVersionCode());
                 callbackContext.sendPluginResult(pluginResult);
             });
         } catch (final Exception e) {
